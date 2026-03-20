@@ -1,5 +1,6 @@
 package com.mattg.wahuntingregs.screens
 
+import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,6 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,23 +30,84 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import org.json.JSONObject
 
+// Data classes for JSON
+data class Gmu(
+    val number: Int,
+    val name: String
+)
+
+data class HuntingSchema(
+    val tagTypes: List<String>,
+    val speciesTypes: List<String>,
+    val gmus: List<Gmu>
+)
+
+// JSON Loader
+fun loadHuntingSchema(context: Context): HuntingSchema {
+    val jsonString = context.assets.open("HuntingSchema26.json")
+        .bufferedReader()
+        .use { it.readText() }
+    val jsonObject = JSONObject(jsonString)
+
+    // JSON Arrays -> Kotlin lists
+    val tagTypesJson = jsonObject.getJSONArray("tagTypes")
+    val tagTypes = mutableListOf<String>()
+
+    for (i in 0 until tagTypesJson.length()) {
+        tagTypes.add(tagTypesJson.getString(i))
+    }
+
+    val speciesJson = jsonObject.getJSONArray("speciesTypes")
+    val speciesTypes = mutableListOf<String>()
+    for (i in 0 until speciesJson.length()) {
+        speciesTypes.add(speciesJson.getString(i))
+    }
+
+    val gmusJson = jsonObject.getJSONArray("gmus")
+    val gmus = mutableListOf<Gmu>()
+    for (i in 0 until gmusJson.length()) {
+        val gmuObject = gmusJson.getJSONObject(i)
+        gmus.add(
+            Gmu(
+                number = gmuObject.getInt("number"),
+                name = gmuObject.getString("name")
+            )
+        )
+    }
+
+    return HuntingSchema(
+        tagTypes = tagTypes,
+        speciesTypes = speciesTypes,
+        gmus = gmus
+    )
+}
+
+// Actual Homescreen
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     onFindRegs: (tagType: String, species: String, gmu: String) -> Unit
     ) {
-    // Temporary lists, replace with proper data later.  This is just to play with/render data
-    val tagTypes = listOf("Archery", "Modern Firearm", "Muzzleloader")
-    val speciesTypes = listOf("Bear", "Cougar", "Deer", "Elk", "Grouse", "Turkey", "Migratory Bird")
-    val gmus = listOf("GMU 1", "GMU 2", "GMU 3")
-
+    // **Updated for JSON
+    val context = LocalContext.current
+    val schema = remember { loadHuntingSchema(context) }
+    val tagTypes = schema.tagTypes
+    val speciesTypes = schema.speciesTypes
+    val gmus = schema.gmus.map { "${it.number} - ${it.name}" }
     var selectedTagType by remember { mutableStateOf("") }
     var selectedSpecies by remember { mutableStateOf("") }
     var selectedGmu by remember { mutableStateOf("") }
 
+    // Build UI
     Column (
-        modifier = modifier .fillMaxSize() .padding(20.dp), verticalArrangement = Arrangement.Top, horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier
+            .fillMaxSize()
+            .padding(20.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // "Title"
         Text (
@@ -81,16 +146,29 @@ fun HomeScreen(
 @Composable
 fun DropDownField(label: String, options: List<String>, selected: String, onSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = {expanded = !expanded}) {
         OutlinedTextField(value = selected, onValueChange = {}, readOnly = true, label = { Text(label) }, trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)}, modifier = Modifier .fillMaxWidth() .menuAnchor())
 
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = {expanded = false}) {
-            options.forEach { option ->
-                DropdownMenuItem( text = { Text(option) }, onClick = {
-                    onSelected(option)
-                    expanded = false
-                })
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 300.dp)
+                    .verticalScroll(scrollState)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
