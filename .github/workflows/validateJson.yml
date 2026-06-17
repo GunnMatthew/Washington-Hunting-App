@@ -1,0 +1,23 @@
+name: Validate JSON
+
+on:
+  push:
+    paths:
+      - 'app/src/main/assets/HuntingSchema26.json'
+
+  pull_request:
+    paths:
+      - 'app/src/main/assets/HuntingSchema26.json'
+
+jobs:
+  validateJson:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate JSON file
+        run: | 
+          echo "checking HuntingSchema26.json"
+          jq empty app/src/main/assets/HuntingSchema26.json
