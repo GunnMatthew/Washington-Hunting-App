@@ -13,8 +13,10 @@ import androidx.compose.ui.Modifier
 import com.mattg.wahuntingregs.ui.theme.WAHuntingRegsTheme
 import com.mattg.wahuntingregs.screens.HomeScreen
 import com.mattg.wahuntingregs.screens.ResultScreen
+import com.mattg.wahuntingregs.screens.IdentificationScreen
+import com.mattg.wahuntingregs.screens.PointsDiagramScreen
 
-private enum class Screen {HOME, RESULTS}
+private enum class Screen {HOME, RESULTS, IDENTIFICATION, POINTS_DIAGRAMS}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +40,10 @@ class MainActivity : ComponentActivity() {
                                     selectedSpecies = species
                                     selectedGmu = gmu
                                     screen = Screen.RESULTS
+                                },
+                                onIdentification = { screen = Screen.IDENTIFICATION
+                                },
+                                onPointDiagrams = { screen = Screen.POINTS_DIAGRAMS
                                 }
                             )
                         }
@@ -48,6 +54,20 @@ class MainActivity : ComponentActivity() {
                                 tagType = selectedTagType,
                                 species = selectedSpecies,
                                 gmu = selectedGmu,
+                                onBack = { screen = Screen.HOME }
+                            )
+                        }
+
+                        Screen.IDENTIFICATION -> {
+                            IdentificationScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                onBack = { screen = Screen.HOME }
+                            )
+                        }
+
+                        Screen.POINTS_DIAGRAMS -> {
+                            PointsDiagramScreen(
+                                modifier = Modifier.padding(innerPadding),
                                 onBack = { screen = Screen.HOME }
                             )
                         }
