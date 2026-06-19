@@ -66,6 +66,8 @@ fun HomeScreen(
     var selectedSpecies by remember { mutableStateOf("") }
     var selectedGmu by remember { mutableStateOf("") }
 
+    val lintTest = "Lint Test"
+
     // Build UI
     Column (
         modifier = modifier
