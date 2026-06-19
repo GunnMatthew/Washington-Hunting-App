@@ -12,7 +12,7 @@ class LogicTest {
     fun extractGmuNumber() {
         val result = extractGmuNumber("101 - Sherman")
 
-        assertEquals("102", result)
+        assertEquals("101", result)
     }
 
     // Verify harvest restrictions "Any buck"
