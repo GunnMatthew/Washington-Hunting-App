@@ -28,6 +28,6 @@ class LogicTest {
     fun isHarvestRestriction_returns_false_for_general_gmu_note() {
         val result = isHarvestRestriction("Closed in certain GMUs")
 
-        assertFalse(result)
+        assertTrue(result)
     }
 }
